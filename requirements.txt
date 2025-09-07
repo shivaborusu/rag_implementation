@@ -9,6 +9,7 @@ python-dotenv
 streamlit
 ipykernel
 mlflow
+mlflow[langchain]
 huggingface
 sentence_transformers
 fastapi[standard]

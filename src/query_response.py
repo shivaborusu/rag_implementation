@@ -4,12 +4,20 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_huggingface import HuggingFaceEmbeddings
+import mlflow
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
 
 def get_query_response(query: str) -> str:
+    mlflow.set_tracking_uri(uri=os.environ["MLFLOW_TRACKING_SERVER"])
+
+    experiment_name = "pdf_rag_"+datetime.now().strftime("%m_%d_%Y")
+    mlflow.set_experiment(experiment_name)
+    mlflow.langchain.autolog()
+
     model_name = "BAAI/bge-large-en-v1.5"  
     model_kwargs = {'device': 'cpu'}  
     encode_kwargs = {'normalize_embeddings': True}  
@@ -35,10 +43,11 @@ def get_query_response(query: str) -> str:
 
     llm = ChatGroq(model="llama-3.3-70b-versatile",
                    temperature=0,
-                   max_tokens=100)
+                   max_tokens=200)
     
     prompt_template = """You are an useful assistant
-    Answer {user_question} based on the {context}
+    Answer {user_question} based on the {context}.
+    Limit response to 5 sentences.
     If no information is found, don't assume anything and say I don't know
     """
 
