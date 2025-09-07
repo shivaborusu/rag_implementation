@@ -1,0 +1,15 @@
+langchain
+langchain-qdrant
+langchain_community
+langchain_huggingface
+langchain_text_splitters
+langchain_groq
+pypdf
+python-dotenv
+streamlit
+ipykernel
+mlflow
+huggingface
+sentence_transformers
+fastapi[standard]
+pydantic
