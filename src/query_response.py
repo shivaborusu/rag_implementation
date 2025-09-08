@@ -5,6 +5,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_huggingface import HuggingFaceEmbeddings
 import mlflow
+import mlflow.langchain as mlflow_langchain
 import os
 from datetime import datetime
 from dotenv import load_dotenv
@@ -16,8 +17,9 @@ def get_query_response(query: str) -> str:
 
     experiment_name = "pdf_rag_"+datetime.now().strftime("%m_%d_%Y")
     mlflow.set_experiment(experiment_name)
-    mlflow.langchain.autolog()
+    mlflow_langchain.autolog()
 
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
     model_name = "BAAI/bge-large-en-v1.5"  
     model_kwargs = {'device': 'cpu'}  
     encode_kwargs = {'normalize_embeddings': True}  
