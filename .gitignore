@@ -210,3 +210,6 @@ __marimo__/
 # support folders
 .data
 *.ipynb
+
+# macOS
+.DS_Store
