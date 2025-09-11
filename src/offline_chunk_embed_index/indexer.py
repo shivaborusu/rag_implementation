@@ -3,7 +3,9 @@ from utils.vector_utils import collection_exists
 from qdrant_client import QdrantClient
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
+import sys
 import yaml
 from utils.vector_utils import collection_exists, create_collection
 from utils.logger import get_logger
@@ -28,6 +30,12 @@ class Indexer():
 
         pdf_loader = self._get_pdf_loader(pdf_file_path)
         documents = pdf_loader.load()
+        print("CHUNK_CONF: ", config["offline"]["chunking"])
+
+        documents = self._chunk_documents(documents,
+                                          config["offline"]["chunking"])
+        
+        sys.exit(0)
         vector_store_client = self._get_vector_store_client()
         embedder = self._get_embedder(config["offline"]["embedding"]["model_name"])
 
@@ -54,6 +62,14 @@ class Indexer():
                                 mode='page')
         
         return pdf_loader
+
+    def _chunk_documents(self, documents, chunk_config):
+        logger.info("Chunking Documents, Count: %d", len(documents))
+        text_splitter = RecursiveCharacterTextSplitter(**chunk_config)
+        documents = text_splitter.split_documents(documents=documents)
+        logger.info("Chunking Complete, Count: %d", len(documents))
+
+        return documents
 
 
     def _get_vector_store_client(self):
@@ -97,5 +113,5 @@ class Indexer():
         return True
         
 
-# test_file = "/Users/shivaborusu/Development/Repos/rag_implementation/.data/new_pdf.pdf"
-# Indexer().index(test_file, "pdf_documents")
+test_file = "/Users/shivaborusu/Development/Repos/rag_implementation/.data/ds_interview.pdf"
+Indexer().index(test_file, "pdf_documents")
