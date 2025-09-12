@@ -7,6 +7,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
 import sys
 import yaml
+import mlflow.langchain as mlflow_langchain
+import mlflow
+from datetime import datetime
+import time
 from utils.vector_utils import collection_exists, create_collection
 from utils.logger import get_logger
 logger = get_logger(__name__)
@@ -14,7 +18,7 @@ logger = get_logger(__name__)
 from dotenv import load_dotenv
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
+mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_SERVER"])
 
 class Indexer():
     def __init__(self):
@@ -22,29 +26,26 @@ class Indexer():
 
     def index(self, pdf_file_path, collection_name):
         """
-            Receives a single pdf or a list of pdf files to chunk, embed and index
+            Receives a single pdf to chunk, embed and index
 
         """
         
         config = self._get_config()
+        mlflow.set_experiment(config["mlflow"]["index_exp_name"])
 
-        pdf_loader = self._get_pdf_loader(pdf_file_path)
-        documents = pdf_loader.load()
-        print("CHUNK_CONF: ", config["offline"]["chunking"])
+        with mlflow.start_run(run_name=f"indexing_{datetime.now().isoformat()}"):
+            pdf_loader = self._get_pdf_loader(pdf_file_path)
+            documents = pdf_loader.load()
+            documents = self._chunk_documents(documents,
+                                            config["offline"]["chunking"])
+            vector_store_client = self._get_vector_store_client()
+            embedder = self._get_embedder(config["offline"]["embedding"]["model_name"])
+            mlflow.log_param("embedding_model", config["offline"]["embedding"]["model_name"])
 
-        documents = self._chunk_documents(documents,
-                                          config["offline"]["chunking"])
-        
-        sys.exit(0)
-        vector_store_client = self._get_vector_store_client()
-        embedder = self._get_embedder(config["offline"]["embedding"]["model_name"])
-
- 
-
-        status = self._add_documents_to_collection(documents,
-                                          vector_store_client,
-                                          collection_name,
-                                          embedder)
+            status = self._add_documents_to_collection(documents,
+                                            vector_store_client,
+                                            collection_name,
+                                            embedder)
 
 
     def _get_config(self):
@@ -105,7 +106,11 @@ class Indexer():
                                 collection_name=collection_name,
                                 embedding=embedder)
         try:
+            start = time.time()
             qdrant_vector_store.add_documents(documents)
+            elapsed_time = (time.time() - start)
+            mlflow.log_metric("count_of_embed_docs", len(documents))
+            mlflow.log_metric("embedding_time", elapsed_time)
             logger.info("Adding documents to vector store: Successful")
         except Exception as e:
             logger.info("Exception while adding documents to vector store, {e}", exc_info=True)

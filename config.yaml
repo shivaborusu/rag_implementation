@@ -1,3 +1,5 @@
+mlflow:
+    index_exp_name: "pdf_rag_indexing"
 offline:
   chunking:
     chunk_size: 500
