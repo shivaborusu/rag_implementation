@@ -1,5 +1,10 @@
 mlflow:
     index_exp_name: "pdf_rag_indexing"
+embedding:
+  model_name: "BAAI/bge-large-en-v1.5"
+vector_store:
+  collection_name: "pdf_documents"
+  embedding_dim: 1024
 offline:
   chunking:
     chunk_size: 500
@@ -8,8 +13,4 @@ offline:
       - "\n\n"
       - "\n"
       - " "
-  embedding:
-    model_name: "BAAI/bge-large-en-v1.5"
-  vector_store:
-    collection_name: "pdf_documents"
-    embedding_dim: 1024
+

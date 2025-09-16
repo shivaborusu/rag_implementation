@@ -1,22 +1,20 @@
 from langchain_community.document_loaders import PyPDFLoader
-from utils.vector_utils import collection_exists
-from qdrant_client import QdrantClient
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
 import sys
-import yaml
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 import mlflow.langchain as mlflow_langchain
 import mlflow
 from datetime import datetime
 import time
-from utils.vector_utils import collection_exists, create_collection
+from utils.vector_utils import (get_vector_store_client, collection_exists,
+                                create_collection, load_config, get_embedder)
 from utils.logger import get_logger
-logger = get_logger(__name__)
-
 from dotenv import load_dotenv
+
 load_dotenv()
+logger = get_logger(__name__)
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_SERVER"])
 
@@ -30,7 +28,7 @@ class Indexer():
 
         """
         
-        config = self._get_config()
+        config = load_config()
         mlflow.set_experiment(config["mlflow"]["index_exp_name"])
 
         with mlflow.start_run(run_name=f"indexing_{datetime.now().isoformat()}"):
@@ -38,23 +36,14 @@ class Indexer():
             documents = pdf_loader.load()
             documents = self._chunk_documents(documents,
                                             config["offline"]["chunking"])
-            vector_store_client = self._get_vector_store_client()
-            embedder = self._get_embedder(config["offline"]["embedding"]["model_name"])
-            mlflow.log_param("embedding_model", config["offline"]["embedding"]["model_name"])
+            vector_store_client = get_vector_store_client()
+            embedder = get_embedder()
+            mlflow.log_param("embedding_model", config["embedding"]["model_name"])
 
             status = self._add_documents_to_collection(documents,
                                             vector_store_client,
                                             collection_name,
                                             embedder)
-
-
-    def _get_config(self):
-        logger.info("Fetching the config")
-        with open("config.yaml", "r") as file:
-            config = yaml.safe_load(file)
-
-        return config
-
 
     def _get_pdf_loader(self, pdf_file_path):
         logger.info("Getting PDF Loader")
@@ -71,25 +60,6 @@ class Indexer():
         logger.info("Chunking Complete, Count: %d", len(documents))
 
         return documents
-
-
-    def _get_vector_store_client(self):
-        logger.info("Getting Vector Store Client")
-        qdrant_client = QdrantClient(url=os.environ["QDRANT_URI"])
-
-        return qdrant_client
-    
-
-    def _get_embedder(self, model_name):
-        logger.info("Getting Embedding Config")
-        model_kwargs = {'device': 'cpu'}  
-        encode_kwargs = {'normalize_embeddings': True}  
-        embedder = HuggingFaceEmbeddings(model_name=model_name,
-                                         model_kwargs=model_kwargs,
-                                         encode_kwargs=encode_kwargs)
-        
-        return embedder
-
     
 
     def _add_documents_to_collection(self, documents,
