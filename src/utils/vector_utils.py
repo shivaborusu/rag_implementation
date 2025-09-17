@@ -1,6 +1,7 @@
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_core.prompts import PromptTemplate
 import os
 import yaml
 from dotenv import load_dotenv
@@ -42,5 +43,19 @@ def get_embedder():
     
     return embedder
 
+
+def get_prompt(user_question, context):
+    prompt_template = """You are an useful assistant, 
+    Answer the question based on the context provided.
+    If no context provided, just say I don't have enough context to answer.
+    Question:{user_question}
+    Context: {context}
+    Limit response to 5 sentences.
+    """
+
+    prompt = PromptTemplate.from_template(prompt_template)
+
+    return prompt.invoke({"user_question":user_question,
+                          "context":context})
 
 

@@ -1,26 +1,17 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_qdrant import QdrantVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-import mlflow.langchain as mlflow_langchain
 import mlflow
 from datetime import datetime
 import time
 from utils.vector_utils import (get_vector_store_client, collection_exists,
                                 create_collection, load_config, get_embedder)
 from utils.logger import get_logger
-from dotenv import load_dotenv
 
-load_dotenv()
-logger = get_logger(__name__)
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_SERVER"])
 
 class Indexer():
     def __init__(self):
-        pass
+        self.logger = get_logger(__name__)
 
     def index(self, pdf_file_path, collection_name):
         """
@@ -46,7 +37,7 @@ class Indexer():
                                             embedder)
 
     def _get_pdf_loader(self, pdf_file_path):
-        logger.info("Getting PDF Loader")
+        self.logger.info("Getting PDF Loader")
         pdf_loader = PyPDFLoader(file_path=pdf_file_path,
                                 extract_images=False,
                                 mode='page')
@@ -54,10 +45,10 @@ class Indexer():
         return pdf_loader
 
     def _chunk_documents(self, documents, chunk_config):
-        logger.info("Chunking Documents, Count: %d", len(documents))
+        self.logger.info("Chunking Documents, Count: %d", len(documents))
         text_splitter = RecursiveCharacterTextSplitter(**chunk_config)
         documents = text_splitter.split_documents(documents=documents)
-        logger.info("Chunking Complete, Count: %d", len(documents))
+        self.logger.info("Chunking Complete, Count: %d", len(documents))
 
         return documents
     
@@ -67,7 +58,7 @@ class Indexer():
                                      collection_name,
                                      embedder):
         
-        logger.info("Adding documents to vector store")
+        self.logger.info("Adding documents to vector store")
         if not collection_exists(vector_store_client, collection_name):
             create_collection(vector_store_client, collection_name)
         
@@ -81,12 +72,8 @@ class Indexer():
             elapsed_time = (time.time() - start)
             mlflow.log_metric("count_of_embed_docs", len(documents))
             mlflow.log_metric("embedding_time", elapsed_time)
-            logger.info("Adding documents to vector store: Successful")
+            self.logger.info("Adding documents to vector store: Successful")
         except Exception as e:
-            logger.info("Exception while adding documents to vector store, {e}", exc_info=True)
+            self.logger.info("Exception while adding documents to vector store, {e}", exc_info=True)
 
         return True
-        
-
-test_file = "/Users/shivaborusu/Development/Repos/rag_implementation/.data/ds_interview.pdf"
-Indexer().index(test_file, "pdf_documents")

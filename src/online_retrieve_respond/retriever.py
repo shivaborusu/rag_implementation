@@ -1,16 +1,12 @@
-from qdrant_client import QdrantClient
-from langchain_qdrant import QdrantVectorStore
-from langchain_huggingface import HuggingFaceEmbeddings
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-
-from utils.vector_utils import (get_vector_store_client, collection_exists,
-                                create_collection, load_config, get_embedder)
+from langchain_qdrant import QdrantVectorStore
+from utils.vector_utils import (get_vector_store_client,
+                                load_config, get_embedder)
 from utils.logger import get_logger
 from dotenv import load_dotenv
 load_dotenv()
-
 
 class Retriever:
     def __init__(self) -> None:
@@ -45,8 +41,4 @@ class Retriever:
                                                         k=num_res)
         
         return results
-    
 
-
-results = Retriever().search(query="what is lakehouse")
-print(results)
