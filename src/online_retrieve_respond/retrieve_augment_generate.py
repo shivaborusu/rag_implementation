@@ -11,21 +11,21 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 
-class AugGen():
+class RetAugGen():
     def __init__(self) -> None:
         pass
 
-    def augment_generate(self,query):
-        context, _ = self._fetch_context(query)
+    def get_response(self,query):
+        context, _ = self._retrieve(query)
 
         aug_prompt = self._augment(query, context)
 
         response = self._generate(aug_prompt)
 
-        print(response)
+        return response
 
 
-    def _fetch_context(self, query):
+    def _retrieve(self, query):
         results = Retriever().search(query)
 
         context = [doc.page_content for doc in results]
@@ -49,6 +49,4 @@ class AugGen():
         response = StrOutputParser().invoke(ai_response)
 
         return response
-
-
-AugGen().augment_generate(query="what is shakalaka bhoom bhoom")
+    
