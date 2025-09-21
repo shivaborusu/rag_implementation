@@ -1,13 +1,17 @@
 from langchain_core.output_parsers import StrOutputParser
+import mlflow
+import mlflow.langchain as mlflow_langchain
 from retriever import Retriever
-from utils.vector_utils import get_prompt
+from utils.vector_utils import get_prompt, load_config
 from utils.logger import get_logger
+from datetime import datetime
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from dotenv import load_dotenv
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_SERVER"])
 
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
@@ -15,17 +19,21 @@ from langchain_core.prompts import PromptTemplate
 class RetAugGen():
     def __init__(self) -> None:
         self.logger = get_logger(__name__)
+        mlflow_langchain.autolog()
 
     def get_response(self,query):
-        self.logger.info("Starting RAG")
-        context, _ = self._retrieve(query)
+        config = load_config()
+        mlflow.set_experiment(config["mlflow"]["retrieval_exp_name"])
+        with mlflow.start_run(run_name=f"rag_{datetime.now().strftime("%m_%d_%Y")}"):
+            self.logger.info("Starting RAG")
+            context, _ = self._retrieve(query)
 
-        aug_prompt = self._augment(query, context)
+            aug_prompt = self._augment(query, context)
 
-        response = self._generate(aug_prompt)
-        self.logger.info("Successful response generation")
+            response = self._generate(aug_prompt)
+            self.logger.info("Successful response generation")
 
-        return response
+            return response
 
 
     def _retrieve(self, query):

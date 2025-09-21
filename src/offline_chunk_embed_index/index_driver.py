@@ -9,8 +9,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_SERVER"])
-
 
 class IndexDriver():
     def __init__(self) -> None:

@@ -1,5 +1,6 @@
 mlflow:
-    index_exp_name: "pdf_rag_indexing"
+    index_exp_name: "pdf_indexing"
+    retrieval_exp_name: "pdf_rag"
 embedding:
   model_name: "BAAI/bge-large-en-v1.5"
 vector_store:

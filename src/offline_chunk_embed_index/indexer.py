@@ -22,7 +22,7 @@ class Indexer():
         config = load_config()
         mlflow.set_experiment(config["mlflow"]["index_exp_name"])
 
-        with mlflow.start_run(run_name=f"indexing_{datetime.now().isoformat()}"):
+        with mlflow.start_run(run_name=f"indexing_{datetime.now().strftime("%m_%d_%Y")}"):
             pdf_loader = self._get_pdf_loader(pdf_file_path)
             documents = pdf_loader.load()
             documents = self._chunk_documents(documents,
