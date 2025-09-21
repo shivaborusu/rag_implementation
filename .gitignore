@@ -214,3 +214,7 @@ archives/
 
 # macOS
 .DS_Store
+
+
+#sqlitedb
+indexed_docs

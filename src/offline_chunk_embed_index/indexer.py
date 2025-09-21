@@ -13,7 +13,7 @@ class Indexer():
     def __init__(self):
         self.logger = get_logger(__name__)
 
-    def index(self, pdf_file_path, collection_name):
+    def index(self, pdf_file_path):
         """
             Receives a single pdf to chunk, embed and index
 
@@ -33,7 +33,7 @@ class Indexer():
 
             status = self._add_documents_to_collection(documents,
                                             vector_store_client,
-                                            collection_name,
+                                            config["vector_store"]["collection_name"],
                                             embedder)
 
     def _get_pdf_loader(self, pdf_file_path):
@@ -74,6 +74,6 @@ class Indexer():
             mlflow.log_metric("embedding_time", elapsed_time)
             self.logger.info("Adding documents to vector store: Successful")
         except Exception as e:
-            self.logger.info("Exception while adding documents to vector store, {e}", exc_info=True)
+            self.logger.info("Exception while adding documents to vector store", exc_info=True)
 
         return True

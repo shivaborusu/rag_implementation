@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from retrieve_augment_generate import RetAugGen
 
@@ -16,8 +16,12 @@ def read_root():
 
 @app.post("/search")
 def search(request: Query):
-    response = RetAugGen().get_response(query=request.query)
-    return {'user_id': request.user_id,
-            "query": request.query,
-            "response": response}
-
+    try:
+     response = RetAugGen().get_response(query=request.query)
+     
+     return {'user_id': request.user_id,
+        "query": request.query,
+        "response": response}
+    except Exception as e:
+       raise HTTPException(status_code=500,
+                           detail="Failed to generate a response")
