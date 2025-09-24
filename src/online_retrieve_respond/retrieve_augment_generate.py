@@ -1,3 +1,5 @@
+from langchain_groq import ChatGroq
+from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import mlflow
 import mlflow.langchain as mlflow_langchain
@@ -10,20 +12,18 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from dotenv import load_dotenv
 load_dotenv()
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_SERVER"])
 
-from langchain_groq import ChatGroq
-from langchain_core.prompts import PromptTemplate
+mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_SERVER"])
 
 class RetAugGen():
     def __init__(self) -> None:
         self.logger = get_logger(__name__)
         mlflow_langchain.autolog()
+        self.config = {}
 
     def get_response(self,query):
-        config = load_config()
-        mlflow.set_experiment(config["mlflow"]["retrieval_exp_name"])
+        self.config = load_config()
+        mlflow.set_experiment(self.config["mlflow"]["retrieval_exp_name"])
         with mlflow.start_run(run_name=f"rag_{datetime.now().strftime("%m_%d_%Y")}"):
             self.logger.info("Starting RAG")
             context, _ = self._retrieve(query)
@@ -58,9 +58,7 @@ class RetAugGen():
     
     def _generate(self, aug_prompt):
         self.logger.info("Generating the response")
-        llm = ChatGroq(model="llama-3.3-70b-versatile",
-                temperature=0,
-                max_tokens=200)
+        llm = ChatGroq(**self.config["online"]["llm"])
 
         ai_response = llm.invoke(aug_prompt)
 

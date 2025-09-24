@@ -8,7 +8,6 @@ from utils.sqlite_utils import add_indexed_file, get_indexed_files
 from dotenv import load_dotenv
 load_dotenv()
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 class IndexDriver():
     def __init__(self) -> None:
