@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -5,11 +8,9 @@ import mlflow
 import mlflow.langchain as mlflow_langchain
 from retriever import Retriever
 from utils.vector_utils import get_prompt, load_config
+from utils.pg_utils import add_eval_data
 from utils.logger import get_logger
 from datetime import datetime
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -20,6 +21,7 @@ class RetAugGen():
         self.logger = get_logger(__name__)
         mlflow_langchain.autolog()
         self.config = {}
+        self.eval_dict = {}
 
     def get_response(self,query):
         self.config = load_config()
@@ -32,6 +34,8 @@ class RetAugGen():
 
             response = self._generate(aug_prompt)
             self.logger.info("Successful response generation")
+
+            self._log_eval_data(query, context, response)
 
             return response
 
@@ -66,3 +70,10 @@ class RetAugGen():
 
         return response
     
+    def _log_eval_data(self, query, context, response):
+        self.logger.info("Logging eval data")
+        try:
+            add_eval_data(query, context, response)
+            self.logger.info("Success logging eval data")
+        except Exception as e:
+            self.logger.info("Error while loggin eval data", exc_info=True)

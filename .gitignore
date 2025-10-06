@@ -219,4 +219,4 @@ archives/
 
 
 #sqlitedb
-indexed_docs
+rag_db.db

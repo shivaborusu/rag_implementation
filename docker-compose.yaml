@@ -5,7 +5,7 @@ services:
     ports:
       - "6333:6333"
     volumes:
-      - vector_store:/vector_store
+      - vector_store:/qdrant/storage
     networks:
       - shared_net
 
@@ -20,9 +20,25 @@ services:
     networks:
       - shared_net
 
+  postgres:
+    container_name: postgres_db
+    image: postgres:15
+    environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - shared_net
+  
+
 volumes:
   mlruns:
   vector_store:
+  pgdata:
 
 networks:
   shared_net:
