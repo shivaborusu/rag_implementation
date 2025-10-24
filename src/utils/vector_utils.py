@@ -1,6 +1,7 @@
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 import os
 import yaml
@@ -42,6 +43,13 @@ def get_embedder():
                                         encode_kwargs=encode_kwargs)
     
     return embedder
+
+
+def get_llm():
+    config = load_config()
+    llm = ChatGroq(**config["llm"])
+    
+    return llm
 
 
 def get_prompt(user_question, context):

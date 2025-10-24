@@ -26,7 +26,7 @@ class Indexer():
             pdf_loader = self._get_pdf_loader(pdf_file_path)
             documents = pdf_loader.load()
             documents = self._chunk_documents(documents,
-                                            config["offline"]["chunking"])
+                                            config["chunking"])
             vector_store_client = get_vector_store_client()
             embedder = get_embedder()
             mlflow.log_param("embedding_model", config["embedding"]["model_name"])

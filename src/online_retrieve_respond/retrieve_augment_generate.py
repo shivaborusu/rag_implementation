@@ -7,7 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 import mlflow
 import mlflow.langchain as mlflow_langchain
 from retriever import Retriever
-from utils.vector_utils import get_prompt, load_config
+from utils.vector_utils import get_prompt, load_config, get_llm
 from utils.pg_utils import add_eval_data
 from utils.logger import get_logger
 from datetime import datetime
@@ -62,7 +62,7 @@ class RetAugGen():
     
     def _generate(self, aug_prompt):
         self.logger.info("Generating the response")
-        llm = ChatGroq(**self.config["online"]["llm"])
+        llm = get_llm()
 
         ai_response = llm.invoke(aug_prompt)
 
