@@ -17,3 +17,8 @@ llm:
   model: "llama-3.3-70b-versatile"
   temperature: 0
   max_tokens: 2000
+
+llm_judge:
+  model: "gemma2:2b"
+  temperature: 0
+  max_tokens: 2000

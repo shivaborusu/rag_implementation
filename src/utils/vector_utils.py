@@ -2,6 +2,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import PromptTemplate
 import os
 import yaml
@@ -48,6 +49,12 @@ def get_embedder():
 def get_llm():
     config = load_config()
     llm = ChatGroq(**config["llm"])
+    
+    return llm
+
+def get_llm_judge():
+    config = load_config()
+    llm = ChatOllama(**config["llm_judge"])
     
     return llm
 

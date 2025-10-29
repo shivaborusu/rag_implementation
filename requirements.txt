@@ -1,6 +1,7 @@
 langchain
 langchain-qdrant
 langchain_community
+langchain_ollama
 langchain_huggingface
 langchain_text_splitters
 langchain_groq
