@@ -53,10 +53,33 @@ def add_eval_data(query, context, response,
     conn.close()
 
 
-def get_eval_data():
+def add_eval_metrics(evaluation_results):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM eval_metrics")
+    cursor.execute('''CREATE TABLE IF NOT EXISTS eval_metrics_computed (
+        id INT PRIMARY KEY,
+        faithfulness REAL,
+        answer_relevance REAL,        
+        computed_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+                   
+
+    cursor.executemany(
+        "INSERT INTO eval_metrics_computed (id, faithfulness, answer_relevance) VALUES (%s, %s, %s)",
+        evaluation_results
+        )
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+def get_eval_data(data_cutoff):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM eval_metrics \
+                   WHERE DATE(request_timestamp) >= %s", 
+                   (data_cutoff,))
     rows = cursor.fetchall()
     cursor.close()
     conn.close()
