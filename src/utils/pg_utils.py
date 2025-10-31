@@ -21,12 +21,15 @@ def drop_table(table_name):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+
+    cursor.close()
     conn.close()
     
     return conn
 
 
-def add_eval_data(query, context, response):
+def add_eval_data(query, context, response,
+                  retrieval_time, query_to_response_time):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS eval_metrics (
@@ -34,13 +37,16 @@ def add_eval_data(query, context, response):
         query TEXT,
         context JSON,
         response TEXT,
-        time_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        retrieval_time REAL,
+        query_to_response_time REAL,        
+        request_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
                    
 
     cursor.execute(
-        "INSERT INTO eval_metrics (query, context, response) VALUES (%s, %s, %s)",
-        (query, json.dumps(context), response)
+        "INSERT INTO eval_metrics (query, context, response," \
+        "retrieval_time, query_to_response_time) VALUES (%s, %s, %s, %s, %s)",
+        (query, json.dumps(context), response, retrieval_time, query_to_response_time)
     )
     conn.commit()
     cursor.close()
@@ -52,6 +58,7 @@ def get_eval_data():
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM eval_metrics")
     rows = cursor.fetchall()
+    cursor.close()
     conn.close()
 
     return rows
