@@ -29,10 +29,8 @@ class Evaluator:
         evaluation_results = self._evaluate(eval_data, evaluator_llm, embedder)
         self.logger.info("Evaluation complete")
 
-
         add_eval_metrics(evaluation_results)
         self.logger.info("Stored eval results to the database")
-
 
         return "Completed"
 

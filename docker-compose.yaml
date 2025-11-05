@@ -33,13 +33,71 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - shared_net
-  
+
+  airflow-init:
+      image: apache/airflow:2.10.2
+      environment:
+        - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+        - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW__CORE__FERNET_KEY}
+        - AIRFLOW__CORE__LOAD_EXAMPLES=True
+        - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AIRFLOW_DB}
+      volumes:
+        - ./airflow/dags:/opt/airflow/dags
+        - ./airflow/logs:/opt/airflow/logs
+        - ./airflow/plugins:/opt/airflow/plugins
+      command: >
+        bash -c "airflow db init"
+      depends_on:
+        - postgres
+      networks:
+        - shared_net
+
+  airflow-webserver:
+    image: apache/airflow:2.10.2
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW__CORE__FERNET_KEY}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=True
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AIRFLOW_DB}
+    command: webserver
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    depends_on:
+      - postgres
+    restart: always
+    networks:
+      - shared_net
+
+  airflow-scheduler:
+    image: apache/airflow:2.10.2
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__FERNET_KEY=${AIRFLOW__CORE__FERNET_KEY}
+      - AIRFLOW__CORE__LOAD_EXAMPLES=True
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AIRFLOW_DB}
+    command: scheduler
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    depends_on:
+      - postgres
+    restart: always
+    networks:
+      - shared_net
+
 
 volumes:
   mlruns:
+    name: shared_infra_mlruns
   vector_store:
+    name: shared_infra_vector_store
   pgdata:
-
+    name: shared_infra_pgdata
 networks:
   shared_net:
     external: true

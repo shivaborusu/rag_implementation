@@ -220,3 +220,8 @@ archives/
 
 #sqlitedb
 rag_db.db
+
+
+#airflow
+airflow/logs
+airflow/plugins

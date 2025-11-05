@@ -41,7 +41,7 @@ def add_eval_data(query, context, response,
         query_to_response_time REAL,        
         request_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
-                   
+
 
     cursor.execute(
         "INSERT INTO eval_metrics (query, context, response," \
