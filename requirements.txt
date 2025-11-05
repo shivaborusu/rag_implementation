@@ -17,3 +17,4 @@ fastapi[standard]
 pydantic
 ragas
 psycopg2-binary
+apache-airflow
